@@ -11,6 +11,7 @@ exports.createQuizAndGame = async (req, res) => {
     try {
         // 1. Generate quiz questions using Gemini API
         const quizData = await generateQuiz(theme, numQuestions, difficulty);
+        console.log("Generated Quiz Data:", quizData);
 
         // 2. Save the generated quiz to the 'quizzes' table in supabase
         const { data: savedQuiz, error: quizError } = await supabase

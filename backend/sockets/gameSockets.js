@@ -5,7 +5,23 @@ module.exports = (io) => {
         console.log("New client connected with socket id: ", socket.id);
 
         // Host joins the game room after creating a quiz
-        socket.on("host-join-game", async ({ gameCode }) => {
+        socket.on("host-join-game", async (data) => {
+            console.log(
+                `Received 'host-join-game' event from ${socket.id} with data:`,
+                data
+            );
+
+            const { gameCode } = data;
+
+            if (!gameCode) {
+                console.log(
+                    "Error: 'host-join-game' received without a gameCode"
+                );
+                return socket.emit("error", {
+                    message: "Game code is required",
+                });
+            }
+
             try {
                 // Find the game in the database
                 const { data: game, error } = await supabase
