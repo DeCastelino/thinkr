@@ -1,45 +1,39 @@
-require("dotenv").config();
 const express = require("express");
 const http = require("http");
-const cors = require("cors");
-const bodyParser = require("body-parser");
 const { Server } = require("socket.io");
-const gameSockets = require("./sockets/gameSockets");
-// Custom Imports
-const routes = require("./routes/routes");
+const cors = require("cors");
 
+// --- 1. IMPORT YOUR MODULES ---
+// Import the function from gameSocket.js
+const initializeSocketIO = require("./sockets/gameSockets");
+// Import your API routes
+const quizRoutes = require("./routes/routes");
+
+// --- 2. INITIALIZE EXPRESS APP ---
 const app = express();
-
-app.use(express.json());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
-app.use(express.static("./public"));
+app.use(express.json());
 
-app.use("/", routes);
+// --- 3. DEFINE API ROUTES ---
+app.use("/api/quiz", quizRoutes);
 
+// --- 4. CREATE HTTP SERVER ---
 const server = http.createServer(app);
 
-// Initialize Socket.IO server
+// --- 5. INITIALIZE SOCKET.IO SERVER ---
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: "*", // For development, allow all origins.
         methods: ["GET", "POST"],
     },
 });
 
-// Listen for new connections
-io.on("connection", (socket) => {
-    console.log("New client connected with socker id: ", socket.id);
+// --- 6. ATTACH SOCKET.IO LOGIC ---
+// This is the crucial step. Call the function and pass the 'io' instance.
+initializeSocketIO(io);
 
-    // --- Game logic event listeners will go here ---//
-
-    socket.on("disconnect", () => {
-        console.log("Client disconnected with socket id: ", socket.id);
-    });
-});
-
-// Start the server
-server.listen(process.env.PORT, () => {
-    console.log(`Server is running on port ${process.env.PORT}`);
+// --- 7. START THE SERVER ---
+const PORT = process.env.PORT;
+server.listen(PORT, () => {
+    console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });
