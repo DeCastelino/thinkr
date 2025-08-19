@@ -16,7 +16,7 @@ module.exports = (io) => {
                 data
             );
 
-            // It's safer to destructure after receiving the data object.
+            // Destructure the gameCode from the data object.
             const { gameCode } = data;
 
             if (!gameCode) {
