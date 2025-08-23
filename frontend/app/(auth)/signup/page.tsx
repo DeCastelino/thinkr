@@ -72,7 +72,7 @@ const Signup = () => {
                         </CardContent>
                         <CardFooter className="flex justify-center mt-10">
                             <Button
-                                onClick={handleLogin()}
+                                // onClick={handleLogin()}
                                 type="submit"
                                 className="w-full bg-foreground outline-none shadow-none hover:bg-inherit hover:text-foreground hover:border-2 hover:border-foreground hover:cursor-pointer"
                             >
