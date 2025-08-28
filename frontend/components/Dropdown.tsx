@@ -13,7 +13,7 @@ type DropdownProps = {
 const Dropdown = ({ options }: DropdownProps) => {
     return (
         <Select>
-            <SelectTrigger className="rounded-full bg-accent w-[180px]">
+            <SelectTrigger className="rounded-full bg-accent w-[180px] hover:cursor-pointer">
                 <SelectValue placeholder="Select" />
             </SelectTrigger>
             <SelectContent className="rounded-lg bg-accent">

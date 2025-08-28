@@ -3,7 +3,7 @@ import Dropdown from "@/components/Dropdown";
 
 const CreateQuiz = () => {
     return (
-        <div className="flex flex-col items-center justify-center h-screen bg-secondary p-10">
+        <div className="flex flex-col items-center justify-center h-screen bg-secondary p-10 gap-4">
             <h1 className="text-5xl font-extrabold text-center italic">
                 THINKr
             </h1>
@@ -37,7 +37,7 @@ const CreateQuiz = () => {
             </div>
             <Button
                 type="submit"
-                className="bg-foreground outline-none shadow-none hover:bg-inherit hover:text-foreground hover:border-2 hover:border-foreground hover:cursor-pointer"
+                className="bg-foreground outline-none mt-20 w-[180px] rounded-full shadow-none hover:bg-inherit hover:text-foreground hover:border-2 hover:border-foreground hover:cursor-pointer"
             >
                 LOGIN
             </Button>
