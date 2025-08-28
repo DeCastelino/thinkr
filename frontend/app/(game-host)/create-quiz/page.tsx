@@ -1,13 +1,5 @@
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import Dropdown from "@/components/Dropdown";
 
 const CreateQuiz = () => {
     return (
@@ -28,97 +20,19 @@ const CreateQuiz = () => {
                     <label htmlFor="difficulty" className="italic">
                         Difficulty Level
                     </label>
-                    <Select>
-                        <SelectTrigger className="rounded-full bg-accent w-[180px]">
-                            <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-lg bg-accent">
-                            <SelectGroup className="hover:cursor-pointer">
-                                <SelectItem
-                                    value="easy"
-                                    className="hover:cursor-pointer hover:font-bold"
-                                >
-                                    Easy
-                                </SelectItem>
-                                <SelectItem
-                                    value="medium"
-                                    className="hover:cursor-pointer hover:font-bold"
-                                >
-                                    Medium
-                                </SelectItem>
-                                <SelectItem
-                                    value="hard"
-                                    className="hover:cursor-pointer hover:font-bold"
-                                >
-                                    Hard
-                                </SelectItem>
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
+                    <Dropdown options={["easy", "medium", "hard"]} />
                 </div>
                 <div className="flex flex-col items-center gap-2">
                     <label htmlFor="timePerQuestion" className="italic">
                         Time Per Question
                     </label>
-                    <Select>
-                        <SelectTrigger className="rounded-full bg-accent w-[180px]">
-                            <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-lg bg-accent">
-                            <SelectGroup className="hover:cursor-pointer">
-                                <SelectItem
-                                    value="10"
-                                    className="hover:cursor-pointer hover:font-bold"
-                                >
-                                    10s
-                                </SelectItem>
-                                <SelectItem
-                                    value="30s"
-                                    className="hover:cursor-pointer hover:font-bold"
-                                >
-                                    30s
-                                </SelectItem>
-                                <SelectItem
-                                    value="1min"
-                                    className="hover:cursor-pointer hover:font-bold"
-                                >
-                                    1min
-                                </SelectItem>
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
+                    <Dropdown options={["10s", "30s", "1min"]} />
                 </div>
                 <div className="flex flex-col items-center gap-2">
                     <label htmlFor="numberOfQuestion" className="italic">
                         Number of Questions
                     </label>
-                    <Select>
-                        <SelectTrigger className="rounded-full bg-accent w-[180px]">
-                            <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-lg bg-accent">
-                            <SelectGroup className="hover:cursor-pointer">
-                                <SelectItem
-                                    value="10"
-                                    className="hover:cursor-pointer hover:font-bold"
-                                >
-                                    10
-                                </SelectItem>
-                                <SelectItem
-                                    value="20"
-                                    className="hover:cursor-pointer hover:font-bold"
-                                >
-                                    20
-                                </SelectItem>
-                                <SelectItem
-                                    value="30"
-                                    className="hover:cursor-pointer hover:font-bold"
-                                >
-                                    30
-                                </SelectItem>
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
+                    <Dropdown options={["10", "20", "30"]} />
                 </div>
             </div>
             <Button
