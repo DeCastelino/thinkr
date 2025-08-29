@@ -17,10 +17,10 @@ const Quiz = () => {
             <div>Question 1</div>
             <div>Question</div>
             <div className="grid grid-cols-2 gap-10">
-                <div>Option 1</div>
-                <div>Option 2</div>
-                <div>Option 3</div>
-                <div>Option 4</div>
+                <div>Answer 1</div>
+                <div>Answer 2</div>
+                <div>Answer 3</div>
+                <div>Answer 4</div>
             </div>
         </div>
     );
