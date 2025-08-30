@@ -4,12 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import loginAction from "./action";
 
-const Login = () => {
+const Login = async () => {
     // ADD LOGIN LOGIC HERE
 
     return (
-        <form action="">
+        <form>
             <div className="flex flex-col gap-6">
                 <Card className="bg-primary px-3 py-6 w-lg h-[32rem] p-12">
                     <Tabs
@@ -78,7 +79,7 @@ const Login = () => {
                             </div>
                             <CardFooter className="flex flex-col justify-between mt-10 gap-5">
                                 <Button
-                                    type="submit"
+                                    formAction={loginAction}
                                     className="w-full bg-foreground outline-none shadow-none hover:bg-inherit hover:text-foreground hover:border-2 hover:border-foreground hover:cursor-pointer"
                                 >
                                     LOGIN
