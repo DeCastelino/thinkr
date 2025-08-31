@@ -40,6 +40,7 @@ const Login = async () => {
                                     <Label htmlFor="email">Email</Label>
                                     <Input
                                         id="email"
+                                        name="email"
                                         type="email"
                                         className="bg-secondary"
                                         required
@@ -49,6 +50,7 @@ const Login = async () => {
                                     <Label htmlFor="password">Password</Label>
                                     <Input
                                         id="password"
+                                        name="password"
                                         type="password"
                                         className="bg-secondary"
                                         required

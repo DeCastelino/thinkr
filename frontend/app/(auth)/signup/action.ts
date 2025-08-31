@@ -1,10 +1,9 @@
-"use server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createClient } from "../../utils/supabase/server";
 
-const loginAction = async (formData: FormData) => {
+const signupAction = async (formData: FormData) => {
     const supabase = await createClient();
 
     // type-casting here for convenience
@@ -13,8 +12,6 @@ const loginAction = async (formData: FormData) => {
         email: formData.get("email") as string,
         password: formData.get("password") as string,
     };
-
-    console.log("Login Data:", data);
 
     const { error } = await supabase.auth.signInWithPassword(data);
 
@@ -26,4 +23,4 @@ const loginAction = async (formData: FormData) => {
     redirect("/create-quiz");
 };
 
-export default loginAction;
+export default signupAction;

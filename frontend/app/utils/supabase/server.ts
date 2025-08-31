@@ -3,12 +3,17 @@ import { cookies } from "next/headers";
 
 export async function createClient() {
     const cookieStore = await cookies();
+    console.log("Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL!);
+    console.log(
+        "Supabase ANON KEY:",
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
 
     // Create a server's supabase client with newly configured cookie,
     // which could be used to maintain user's session
     return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
             cookies: {
                 getAll() {
