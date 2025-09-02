@@ -9,12 +9,20 @@ import {
 
 type DropdownProps = {
     options: string[];
+    placeholder?: string;
+    value: string;
+    onValueChange: (value: string) => void;
 };
-const Dropdown = ({ options }: DropdownProps) => {
+const Dropdown = ({
+    options,
+    placeholder,
+    value,
+    onValueChange,
+}: DropdownProps) => {
     return (
-        <Select>
+        <Select value={value} onValueChange={onValueChange}>
             <SelectTrigger className="rounded-full bg-accent w-[180px] hover:cursor-pointer">
-                <SelectValue placeholder="Select" />
+                <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent className="rounded-lg bg-accent">
                 <SelectGroup className="hover:cursor-pointer">
