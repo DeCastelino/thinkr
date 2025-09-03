@@ -5,6 +5,7 @@ import axios from "axios";
 import { Button } from "@/components/ui/button";
 import Dropdown from "@/components/Dropdown";
 import { createClient } from "@/app/utils/supabase/client";
+import socket from "@/app/utils/websockets/webSockets";
 
 const CreateQuiz = () => {
     const router = useRouter();
@@ -45,7 +46,10 @@ const CreateQuiz = () => {
                     }
                 )
                 .then((response) => {
-                    console.log("Quiz created successfully:", response.data);
+                    socket.connect(); // Manually connect the socket
+                    socket.emit("host-join-game", {
+                        gameCode: response.data.gameCode,
+                    });
                     router.push(`/waiting-room/${response.data.gameCode}`);
                     // Handle success (e.g., navigate to the quiz page)
                 })
