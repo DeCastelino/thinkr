@@ -1,10 +1,13 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import Dropdown from "@/components/Dropdown";
+import { createClient } from "@/app/utils/supabase/client";
 
 const CreateQuiz = () => {
+    const router = useRouter();
     const [quizTheme, setQuizTheme] = useState("");
     const [difficulty, setDifficulty] = useState("");
     const [timePerQuestion, setTimePerQuestion] = useState("");
@@ -12,24 +15,46 @@ const CreateQuiz = () => {
 
     // Options for the dropdowns
     const difficultyOptions = ["easy", "medium", "hard"];
-    const timeOptions = ["10s", "30s", "1min"];
+    const timeOptions = ["10", "30", "60"];
     const numberOfQuestionsOptions = ["10", "20", "30"];
 
-    const handleSubmit = () => {
-        axios
-            .post("/api/create-quiz", {
-                quizTheme,
-                difficulty,
-                timePerQuestion,
-                numberOfQuestions,
-            })
-            .then((response) => {
-                console.log("Quiz created successfully:", response.data);
-                // Handle success (e.g., navigate to the quiz page)
-            })
-            .catch((error) => {
-                console.error("Error creating quiz:", error);
-            });
+    const handleSubmit = async () => {
+        try {
+            // Get the session to ensure the user is authenticated
+            const {
+                data: { session },
+            } = await createClient().auth.getSession();
+
+            if (!session) {
+                throw new Error("User not authenticated");
+            }
+
+            axios
+                .post(
+                    "http://localhost:8080/api/quiz/create-quiz",
+                    {
+                        quizTheme,
+                        difficulty,
+                        timePerQuestion,
+                        numberOfQuestions,
+                    },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${session.access_token}`,
+                        },
+                    }
+                )
+                .then((response) => {
+                    console.log("Quiz created successfully:", response.data);
+                    router.push(`/waiting-room/${response.data.gameCode}`);
+                    // Handle success (e.g., navigate to the quiz page)
+                })
+                .catch((error) => {
+                    console.error("Error creating quiz:", error);
+                });
+        } catch (error: any) {
+            console.error("Error creating quiz:", error);
+        }
     };
 
     return (
@@ -65,7 +90,7 @@ const CreateQuiz = () => {
                     </label>
                     <Dropdown
                         options={timeOptions}
-                        placeholder="Select"
+                        placeholder="Select (in seconds)"
                         value={timePerQuestion}
                         onValueChange={setTimePerQuestion}
                     />

@@ -1,26 +1,33 @@
 const { generateQuiz } = require("../services/gemini");
-const { supabase } = require("../services/supabase");
+// const { supabase } = require("../services/supabase");
 const { nanoid } = require("nanoid");
 
 exports.createQuizAndGame = async (req, res) => {
-    const { theme, numQuestions, difficulty, timePerQuestion } = req.body;
+    const { supabase, user } = req;
+    const { quizTheme, numberOfQuestions, difficulty, timePerQuestion } =
+        req.body;
 
-    if (!theme || !numQuestions || !difficulty || !timePerQuestion) {
+    if (!quizTheme || !numberOfQuestions || !difficulty || !timePerQuestion) {
         return res.status(400).json({ error: "All fields are required" });
     }
     try {
         // 1. Generate quiz questions using Gemini API
-        const quizData = await generateQuiz(theme, numQuestions, difficulty);
-        console.log("Generated Quiz Data:", quizData);
+        const quizData = await generateQuiz(
+            quizTheme,
+            numberOfQuestions,
+            difficulty
+        );
+        console.log("User ID:", user);
 
         // 2. Save the generated quiz to the 'quizzes' table in supabase
         const { data: savedQuiz, error: quizError } = await supabase
             .from("quizzes")
             .insert([
                 {
-                    title: theme,
+                    title: quizTheme,
                     questions: quizData.questions,
                     difficulty: difficulty,
+                    user_id: user.id,
                 },
             ])
             .select()
@@ -42,12 +49,14 @@ exports.createQuizAndGame = async (req, res) => {
                     participants: [],
                     leaderboard: [],
                     current_question_index: 0,
+                    user_id: user.id,
                 },
             ])
             .select()
             .single();
 
         if (gameError) throw gameError;
+        console.log("New Game Created:", newGame);
 
         // Return the game code to the host
         res.status(201).json({ gameCode: newGame.game_code });

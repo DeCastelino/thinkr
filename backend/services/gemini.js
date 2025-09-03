@@ -7,17 +7,17 @@ const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 /**
  * Generates a quiz using the Google Gemini API.
- * @param {string} theme - The theme of the quiz.
- * @param {number} numQuestions - The number of questions.
+ * @param {string} quizTheme - The theme of the quiz.
+ * @param {number} numberOfQuestions - The number of questions.
  * @param {string} difficulty - The difficulty level (e.g., 'easy', 'medium', 'hard').
  * @returns {Promise<Object>} - A promise that resolves to the generated quiz data.
  */
-export async function generateQuiz(theme, numQuestions, difficulty) {
+export async function generateQuiz(quizTheme, numberOfQuestions, difficulty) {
     try {
         // const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
         const contents = `
-      Create a quiz with ${numQuestions} questions about ${theme}.
+      Create a quiz with ${numberOfQuestions} questions about ${quizTheme}.
       The difficulty level should be ${difficulty}.
       For each question, provide 4 multiple-choice options, with one correct answer.
       Return the result as a valid JSON object with the following structure:
