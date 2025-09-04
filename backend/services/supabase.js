@@ -12,3 +12,9 @@ if (!supabaseUrl || !supabaseKey) {
 }
 // Create and export Supabase client
 export const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Admin client with service role key for elevated privileges
+export const supabaseAdmin = createClient(
+    supabaseUrl,
+    process.env.DB_SERVICE_KEY
+);

@@ -1,6 +1,6 @@
 // server/src/sockets/gameSocket.js
 
-const { supabase } = require("../services/supabase");
+const { supabaseAdmin } = require("../services/supabase");
 
 module.exports = (io) => {
     io.on("connection", (socket) => {
@@ -30,7 +30,7 @@ module.exports = (io) => {
 
             try {
                 // .single() will return an error if no row is found, which we'll catch.
-                const { data: game, error } = await supabase
+                const { data: game, error } = await supabaseAdmin
                     .from("games")
                     .select("*")
                     .eq("game_code", gameCode)
@@ -51,7 +51,7 @@ module.exports = (io) => {
                     `Host ${socket.id} successfully joined room ${gameCode}`
                 );
 
-                await supabase
+                await supabaseAdmin
                     .from("games")
                     .update({ host_id: socket.id })
                     .eq("game_code", gameCode);
@@ -89,7 +89,7 @@ module.exports = (io) => {
             }
 
             try {
-                const { data: game, error: gameError } = await supabase
+                const { data: game, error: gameError } = await supabaseAdmin
                     .from("games")
                     .select("*")
                     .eq("game_code", gameCode)
@@ -110,12 +110,13 @@ module.exports = (io) => {
                     { username, socketId: socket.id, score: 0 },
                 ];
 
-                const { data: updatedGame, error: updateError } = await supabase
-                    .from("games")
-                    .update({ participants: updatedParticipants })
-                    .eq("game_code", gameCode)
-                    .select()
-                    .single();
+                const { data: updatedGame, error: updateError } =
+                    await supabaseAdmin
+                        .from("games")
+                        .update({ participants: updatedParticipants })
+                        .eq("game_code", gameCode)
+                        .select()
+                        .single();
 
                 if (updateError) throw updateError;
 
