@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import ParticipantJoinPage from "./participantJoin";
 import loginAction from "./action";
 
 const Login = async () => {
@@ -100,31 +101,7 @@ const Login = async () => {
                             value="participant"
                             className="flex flex-col justify-between h-full"
                         >
-                            <CardContent className="grid gap-6">
-                                <div className="grid gap-3">
-                                    <Label htmlFor="username">Username</Label>
-                                    <Input
-                                        id="username"
-                                        type="username"
-                                        className="bg-secondary"
-                                        required
-                                    />
-                                </div>
-                                <div className="grid gap-3">
-                                    <Label htmlFor="gameCode">Game Code</Label>
-                                    <Input
-                                        id="gameCode"
-                                        type="text"
-                                        className="bg-secondary"
-                                        required
-                                    />
-                                </div>
-                            </CardContent>
-                            <CardFooter className="flex justify-center mt-10">
-                                <Button className="w-full bg-foreground outline-none shadow-none hover:bg-inherit hover:text-foreground hover:border-2 hover:border-foreground hover:cursor-pointer">
-                                    JOIN
-                                </Button>
-                            </CardFooter>
+                            <ParticipantJoinPage />
                         </TabsContent>
                     </Tabs>
                 </Card>

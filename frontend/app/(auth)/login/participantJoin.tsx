@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import socket from "@/app/utils/websockets/webSockets";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -42,46 +42,38 @@ const ParticipantJoinPage = () => {
     };
 
     return (
-        <div className="flex items-center justify-center h-screen bg-secondary">
-            <Card className="bg-primary px-3 py-6 w-lg h-auto p-12">
-                <CardContent className="grid gap-6">
-                    <h1 className="text-3xl font-extrabold text-center italic">
-                        Join Game
-                    </h1>
-                    <div className="grid gap-3">
-                        <Label htmlFor="username">Username</Label>
-                        <Input
-                            id="username"
-                            type="text"
-                            className="bg-secondary"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div className="grid gap-3">
-                        <Label htmlFor="gameCode">Game Code</Label>
-                        <Input
-                            id="gameCode"
-                            type="text"
-                            className="bg-secondary"
-                            value={gameCode}
-                            onChange={(e) => setGameCode(e.target.value)}
-                            required
-                        />
-                    </div>
-                    {error && <p className="text-red-500 text-sm">{error}</p>}
-                </CardContent>
-                <CardFooter className="flex justify-center mt-10">
-                    <Button
-                        onClick={handleJoinGame}
-                        className="w-full bg-foreground outline-none shadow-none hover:bg-inherit hover:text-foreground hover:border-2 hover:border-foreground hover:cursor-pointer"
-                    >
-                        JOIN
-                    </Button>
-                </CardFooter>
-            </Card>
-        </div>
+        <>
+            <CardContent className="grid gap-6">
+                <div className="grid gap-3">
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                        id="username"
+                        type="username"
+                        className="bg-secondary"
+                        required
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
+                </div>
+                <div className="grid gap-3">
+                    <Label htmlFor="gameCode">Game Code</Label>
+                    <Input
+                        id="gameCode"
+                        type="text"
+                        className="bg-secondary"
+                        required
+                        onChange={(e) => setGameCode(e.target.value)}
+                    />
+                </div>
+            </CardContent>
+            <CardFooter className="flex justify-center mt-10">
+                <Button
+                    className="w-full bg-foreground outline-none shadow-none hover:bg-inherit hover:text-foreground hover:border-2 hover:border-foreground hover:cursor-pointer"
+                    onClick={handleJoinGame}
+                >
+                    JOIN
+                </Button>
+            </CardFooter>
+        </>
     );
 };
 
