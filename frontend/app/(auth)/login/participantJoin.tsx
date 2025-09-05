@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import socket from "@/app/utils/websockets/webSockets";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,33 @@ const ParticipantJoinPage = () => {
     const [gameCode, setGameCode] = useState("");
     const [error, setError] = useState("");
 
+    useEffect(() => {
+        if (!socket) return;
+
+        if (!socket.connected) socket.connect();
+
+        const handleGameJoined = (game: { game_code: string }) => {
+            console.log("Participant successfully joined game:", game);
+            // Redirect to participant waiting room
+            router.push(`/participant-waiting/${game.game_code}`);
+        };
+
+        const handleError = (errorMessage: string) => {
+            console.error("Server error:", errorMessage);
+            setError(errorMessage);
+            socket.disconnect(); // Disconnect on error
+        };
+
+        socket.on("game-joined", handleGameJoined);
+        socket.on("error", handleError);
+
+        return () => {
+            console.log("Cleaning up socket listeners for participant join");
+            socket.off("game-joined", handleGameJoined);
+            // socket.off("error", handleError);
+        };
+    }, [router]);
+
     const handleJoinGame = () => {
         if (!username.trim() || !gameCode.trim()) {
             setError("Both username and game code are required.");
@@ -23,21 +50,11 @@ const ParticipantJoinPage = () => {
         setError("");
         socket.connect(); // Manually connect the socket
 
+        console.log("Attempting to join game with code:", gameCode);
+
         socket.emit("participant-join-game", {
             gameCode: gameCode.toUpperCase(),
             username,
-        });
-
-        // Listen for confirmation that the game was joined
-        socket.on("game-joined", (game) => {
-            // Redirect to a participant waiting screen
-            router.push(`/participant-waiting/${game.game_code}`);
-        });
-
-        // Listen for errors from the server
-        socket.on("error", (errorMessage) => {
-            setError(errorMessage);
-            socket.disconnect(); // Disconnect on error
         });
     };
 

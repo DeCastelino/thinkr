@@ -4,7 +4,7 @@ const { supabaseAdmin } = require("../services/supabase");
 
 module.exports = (io) => {
     io.on("connection", (socket) => {
-        console.log(`✅ Client connected: ${socket.id}`);
+        console.log(`1. ✅ Client connected: ${socket.id}`);
 
         /**
          * Host joins the game room after creating it.
@@ -74,7 +74,7 @@ module.exports = (io) => {
          */
         socket.on("participant-join-game", async (data) => {
             console.log(
-                `Received 'participant-join-game' from ${socket.id} with data:`,
+                `2. Received 'participant-join-game' from ${socket.id} with data:`,
                 data
             );
             const { gameCode, username } = data;
@@ -122,14 +122,13 @@ module.exports = (io) => {
 
                 socket.join(gameCode);
                 console.log(
-                    `Participant ${username} (${socket.id}) successfully joined room ${gameCode}`
+                    `3. Participant ${username} (${socket.id}) successfully joined room ${gameCode}`
                 );
 
                 socket.emit("game-joined", updatedGame);
-                io.to(game.host_id).emit(
-                    "participant-updated",
-                    updatedGame.participants
-                );
+                io.to(game.host_id).emit("participant-updated", {
+                    participants: updatedGame.participants,
+                });
             } catch (err) {
                 console.error(
                     `🔥🔥🔥 UNHANDLED ERROR in 'participant-join-game' for socket ${socket.id}:`,
@@ -142,7 +141,7 @@ module.exports = (io) => {
         });
 
         socket.on("disconnect", () => {
-            console.log(`🔌 Client disconnected: ${socket.id}`);
+            console.log(`3. 🔌 Client disconnected: ${socket.id}`);
         });
     });
 };
