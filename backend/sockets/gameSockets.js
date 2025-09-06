@@ -1,8 +1,7 @@
-// server/src/sockets/gameSocket.js
-
 const { supabaseAdmin } = require("../services/supabase");
 
 module.exports = (io) => {
+    let connectedClients = new Map();
     io.on("connection", (socket) => {
         console.log(`1. ✅ Client connected: ${socket.id}`);
 

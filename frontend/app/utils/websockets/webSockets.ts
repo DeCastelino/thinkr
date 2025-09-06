@@ -1,3 +1,4 @@
+"use client";
 import { io } from "socket.io-client";
 
 // Initialize the socket connection to your backend server

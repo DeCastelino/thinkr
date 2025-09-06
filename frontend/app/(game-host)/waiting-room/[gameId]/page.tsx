@@ -55,7 +55,7 @@ const WaitingRoom = ({ params }: { params: Promise<{ gameId: string }> }) => {
             socket.off("error", handleError);
             // You could also emit a "host-left-game" event here if needed
         };
-    }, [gameId]);
+    }, [gameId, participants]);
 
     return (
         <div className="grid grid-cols-2 items-center justify-center h-screen bg-secondary p-10 gap-4">
