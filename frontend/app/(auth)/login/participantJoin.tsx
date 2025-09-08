@@ -32,7 +32,7 @@ const ParticipantJoinPage = () => {
         };
 
         socket.on("game-joined", handleGameJoined);
-        socket.on("error", handleError);
+        // socket.on("error", handleError);
 
         return () => {
             console.log("Cleaning up socket listeners for participant join");
@@ -41,14 +41,13 @@ const ParticipantJoinPage = () => {
         };
     }, [router]);
 
-    const handleJoinGame = () => {
+    const handleJoinGame = async () => {
         if (!username.trim() || !gameCode.trim()) {
             setError("Both username and game code are required.");
             return;
         }
 
         setError("");
-        socket.connect(); // Manually connect the socket
 
         console.log("Attempting to join game with code:", gameCode);
 
@@ -56,6 +55,7 @@ const ParticipantJoinPage = () => {
             gameCode: gameCode.toUpperCase(),
             username,
         });
+        router.push("/participant-waiting");
     };
 
     return (

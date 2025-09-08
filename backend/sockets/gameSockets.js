@@ -5,10 +5,7 @@ module.exports = (io) => {
     io.on("connection", (socket) => {
         console.log(`1. ✅ Client connected: ${socket.id}`);
 
-        /**
-         * Host joins the game room after creating it.
-         * The incoming data is now the second argument of the event listener.
-         */
+        // Host joins the game room after creating it.
         socket.on("host-join-game", async (data) => {
             console.log(
                 `Received 'host-join-game' from ${socket.id} with data:`,
@@ -16,7 +13,7 @@ module.exports = (io) => {
             );
 
             // Destructure the gameCode from the data object.
-            const { gameCode } = data;
+            const gameCode = data.gameCode.toUpperCase();
 
             if (!gameCode) {
                 console.error(
@@ -45,7 +42,10 @@ module.exports = (io) => {
                     });
                 }
 
+                // Creating a new game room. Join the game room
                 socket.join(gameCode);
+                console.log(`Rooms: ${JSON.stringify(socket.rooms)}`);
+
                 console.log(
                     `Host ${socket.id} successfully joined room ${gameCode}`
                 );
@@ -55,7 +55,8 @@ module.exports = (io) => {
                     .update({ host_id: socket.id })
                     .eq("game_code", gameCode);
 
-                socket.emit("game-joined", game);
+                socket.to(gameCode).emit("game-joined", game);
+                // socket.emit("game-joined", game);
             } catch (err) {
                 // This is the critical catch block for any unexpected errors.
                 console.error(
@@ -76,7 +77,8 @@ module.exports = (io) => {
                 `2. Received 'participant-join-game' from ${socket.id} with data:`,
                 data
             );
-            const { gameCode, username } = data;
+            const username = data.username.trim();
+            const gameCode = data.gameCode.toUpperCase();
 
             if (!gameCode || !username) {
                 console.error(
@@ -125,7 +127,12 @@ module.exports = (io) => {
                 );
 
                 socket.emit("game-joined", updatedGame);
-                io.to(game.host_id).emit("participant-updated", {
+                console.log(
+                    `4. Participant ${username} (${socket.id}) successfully joined room ${gameCode}`
+                );
+                console.log("Updated Participants:", updatedGame.participants);
+
+                socket.emit("participant-updated", {
                     participants: updatedGame.participants,
                 });
             } catch (err) {

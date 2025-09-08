@@ -20,17 +20,20 @@ const WaitingRoom = ({ params }: { params: Promise<{ gameId: string }> }) => {
 
         // --- EVENT LISTENERS ---
         // 2. Listen for the initial game state confirmation from the server
-        const handleGameJoined = (gameData: any) => {
-            console.log("Host successfully joined game:", gameData);
+        const handleGameJoined = (updatedGame: any) => {
+            console.log("Client: Host successfully joined game:", updatedGame);
             // Set the initial list of participants who might already be there
-            setParticipants(gameData.participants || []);
+            setParticipants(updatedGame.participants);
         };
 
         // 3. Listen for REAL-TIME updates to the participant list
         const handleParticipantUpdate = (
             updatedParticipants: Participant[]
         ) => {
-            console.log("Received participant update:", updatedParticipants);
+            console.log(
+                "Client: Received participant update:",
+                updatedParticipants
+            );
             setParticipants(updatedParticipants);
         };
 
@@ -50,12 +53,12 @@ const WaitingRoom = ({ params }: { params: Promise<{ gameId: string }> }) => {
         // It's crucial for preventing memory leaks.
         return () => {
             console.log("Cleaning up socket listeners for waiting room");
-            socket.off("game-joined", handleGameJoined);
-            socket.off("participant-updated", handleParticipantUpdate);
+            // socket.off("game-joined", handleGameJoined);
+            // socket.off("participant-updated", handleParticipantUpdate);
             socket.off("error", handleError);
             // You could also emit a "host-left-game" event here if needed
         };
-    }, [gameId, participants]);
+    }, [gameId]);
 
     return (
         <div className="grid grid-cols-2 items-center justify-center h-screen bg-secondary p-10 gap-4">
