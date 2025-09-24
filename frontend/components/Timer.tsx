@@ -1,50 +1,73 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button"; // Assuming shadcn/ui setup
+import { Pause, Play } from "lucide-react";
 
-export default function Countdown() {
-    // State to manage the countdown timer value
-    const [timeLeft, setTimeLeft] = useState<number>(100);
-    // Reference to store the timer ID
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
+interface TimerProps {
+    initialMinutes?: number;
+    onComplete: () => void;
+}
 
-    // useEffect hook to manage the countdown interval
+const Timer: React.FC<TimerProps> = ({ initialMinutes = 5, onComplete }) => {
+    const [seconds, setSeconds] = useState(initialMinutes * 60);
+    const [isRunning, setIsRunning] = useState(false);
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Core timer logic
     useEffect(() => {
-        // If the timer is active and not paused
-        // Set an interval to decrease the time left
-        timerRef.current = setInterval(() => {
-            setTimeLeft((prevTime) => {
-                // If time is up, clear the interval
-                if (prevTime <= 1) {
-                    clearInterval(timerRef.current!);
-                    return 0;
-                }
-                // Decrease the time left by one second
-                return prevTime - 1;
-            });
-        }, 1000); // Interval of 1 second
-        // Cleanup function to clear the interval
+        if (isRunning && seconds > 0) {
+            intervalRef.current = setInterval(() => {
+                setSeconds((prevSeconds) => prevSeconds - 1);
+            }, 1000);
+        } else if (seconds === 0 && isRunning) {
+            setIsRunning(false);
+            onComplete(); // Fire the onComplete hook
+        }
+
+        // Cleanup interval on component unmount or when isRunning changes
         return () => {
-            if (timerRef.current) {
-                clearInterval(timerRef.current);
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
             }
         };
-    }, [timeLeft]); // Dependencies array to rerun the effect
+    }, [isRunning, seconds, onComplete]);
 
-    // Function to format the time left into mm:ss format
-    const formatTime = (time: number): string => {
-        const minutes = Math.floor(time / 60); // Calculate minutes
-        const seconds = time % 60; // Calculate seconds
-        // Return the formatted string
-        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
-            2,
-            "0"
-        )}`;
+    // Start/Pause handler
+    const toggleTimer = () => {
+        setIsRunning((prevIsRunning) => !prevIsRunning);
     };
 
+    // Format time for display (e.g., 05:00)
+    const formatTime = () => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${String(minutes).padStart(2, "0")}:${String(
+            remainingSeconds
+        ).padStart(2, "0")}`;
+    };
+
+    // Conditional styling for the timer display
+    const timerColorClass = seconds < 10 ? "text-red-500" : "text-primary";
+
     return (
-        <div className="text-6xl font-bold text-gray-800 dark:text-gray-200 mb-8 text-center">
-            {formatTime(timeLeft)}
+        <div className="flex items-center gap-4 p-4 border rounded-lg shadow-md w-fit">
+            <div
+                className={`text-4xl font-mono font-bold transition-colors duration-300 ${timerColorClass}`}
+            >
+                {formatTime()}
+            </div>
+            <Button onClick={toggleTimer} variant="outline" size="icon">
+                {isRunning ? (
+                    <Pause className="h-4 w-4" />
+                ) : (
+                    <Play className="h-4 w-4" />
+                )}
+                <span className="sr-only">
+                    {isRunning ? "Pause" : "Start"} Timer
+                </span>
+            </Button>
         </div>
     );
-}
+};
+export default Timer;
