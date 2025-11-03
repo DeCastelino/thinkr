@@ -55,7 +55,7 @@ const ParticipantJoinPage = () => {
             gameCode: gameCode.toUpperCase(),
             username,
         });
-        router.push("/participant-waiting");
+        router.push(`/participant-waiting/${gameCode.toUpperCase()}`);
     };
 
     return (

@@ -16,14 +16,17 @@ const WaitingRoom = ({ params }: { params: Promise<{ gameId: string }> }) => {
     useEffect(() => {
         // --- SETUP ---
         // 1. Tell the server we are the host for this game room
-        // socket.emit("host-join-game", { gameCode: gameId });
+        socket.emit("host-join-game", { gameCode: gameId });
 
         // --- EVENT LISTENERS ---
         // 2. Listen for the initial game state confirmation from the server
         const handleGameJoined = (updatedGame: any) => {
             console.log("Client: Host successfully joined game:", updatedGame);
             // Set the initial list of participants who might already be there
-            setParticipants(updatedGame.participants);
+            const participantsAsObjects = (updatedGame.participants || []).map(
+                (p: any) => (typeof p === "string" ? JSON.parse(p) : p)
+            );
+            setParticipants(participantsAsObjects);
         };
 
         // 3. Listen for REAL-TIME updates to the participant list
@@ -34,7 +37,10 @@ const WaitingRoom = ({ params }: { params: Promise<{ gameId: string }> }) => {
                 "Client: Received participant update:",
                 updatedParticipants
             );
-            setParticipants(updatedParticipants);
+            const participantsAsObjects = (updatedParticipants || []).map(
+                (p: any) => (typeof p === "string" ? JSON.parse(p) : p)
+            );
+            setParticipants(participantsAsObjects);
         };
 
         // 4. Listen for any errors sent by the server
@@ -53,8 +59,8 @@ const WaitingRoom = ({ params }: { params: Promise<{ gameId: string }> }) => {
         // It's crucial for preventing memory leaks.
         return () => {
             console.log("Cleaning up socket listeners for waiting room");
-            // socket.off("game-joined", handleGameJoined);
-            // socket.off("participant-updated", handleParticipantUpdate);
+            socket.off("game-joined", handleGameJoined);
+            socket.off("participant-updated", handleParticipantUpdate);
             socket.off("error", handleError);
             // You could also emit a "host-left-game" event here if needed
         };
@@ -70,7 +76,7 @@ const WaitingRoom = ({ params }: { params: Promise<{ gameId: string }> }) => {
                             {participants.map((participant) => (
                                 <li
                                     key={participant.socketId}
-                                    className="bg-accent rounded-full px-6 py-2 text-2xl font-semibold italic"
+                                    className=" text-black rounded-full px-6 py-2 text-2xl font-semibold italic z-50"
                                 >
                                     {participant.username}
                                 </li>

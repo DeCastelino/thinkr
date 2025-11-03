@@ -56,7 +56,7 @@ module.exports = (io) => {
                     .eq("game_code", gameCode);
 
                 socket.to(gameCode).emit("game-joined", game);
-                // socket.emit("game-joined", game);
+                socket.emit("game-joined", game);
             } catch (err) {
                 // This is the critical catch block for any unexpected errors.
                 console.error(
@@ -132,9 +132,10 @@ module.exports = (io) => {
                 );
                 console.log("Updated Participants:", updatedGame.participants);
 
-                socket.emit("participant-updated", {
-                    participants: updatedGame.participants,
-                });
+                io.to(gameCode).emit(
+                    "participant-updated",
+                    updatedGame.participants
+                );
             } catch (err) {
                 console.error(
                     `🔥🔥🔥 UNHANDLED ERROR in 'participant-join-game' for socket ${socket.id}:`,
