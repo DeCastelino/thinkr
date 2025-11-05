@@ -1,10 +1,13 @@
 "use client";
 import { use, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import socket from "@/app/utils/websockets/webSockets";
+import { Button } from "@/components/ui/button";
 const WaitingRoom = ({ params }: { params: Promise<{ gameId: string }> }) => {
     const { gameId } = use(params);
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
 
     type Participant = {
         socketId: string;
@@ -66,6 +69,12 @@ const WaitingRoom = ({ params }: { params: Promise<{ gameId: string }> }) => {
         };
     }, [gameId]);
 
+    const handleStartGame = () => {
+        // Emit the start-game event to the server
+        socket.emit("start-game", { gameCode: gameId });
+        router.push(`/quiz/${gameId}`);
+    };
+
     return (
         <div className="grid grid-cols-2 items-center justify-center h-screen bg-secondary p-10 gap-4">
             <div className="bg-accent rounded-4xl h-full flex flex-col items-center justify-start p-10 text-3xl font-bold italic">
@@ -102,6 +111,12 @@ const WaitingRoom = ({ params }: { params: Promise<{ gameId: string }> }) => {
                         {gameId}
                     </div>
                 </div>
+                <Button
+                    onClick={handleStartGame}
+                    className="absolute bottom-16 py-5 px-10 bg-primary text-foreground font-extrabold border-2 border-primary hover:text-foreground hover:bg-transparent group-hover:bg-accent group-hover:text-background disabled:bg-accent disabled:text-background disabled:border-accent hover:cursor-pointer"
+                >
+                    START GAME
+                </Button>
             </div>
         </div>
     );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, use } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import socket from "@/app/utils/websockets/webSockets";
 import { Spinner } from "@/components/ui/spinner";
