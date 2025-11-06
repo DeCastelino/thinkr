@@ -52,9 +52,14 @@ const WaitingRoom = ({ params }: { params: Promise<{ gameId: string }> }) => {
             setError(errorMessage);
         };
 
+        const handleGameStarted = () => {
+            router.push(`/quiz/${gameId}`);
+        };
+
         // Attach all the event listeners
         socket.on("game-joined", handleGameJoined);
         socket.on("participant-updated", handleParticipantUpdate);
+        socket.on("game-started", handleGameStarted);
         socket.on("error", handleError);
 
         // --- CLEANUP ---
@@ -67,11 +72,11 @@ const WaitingRoom = ({ params }: { params: Promise<{ gameId: string }> }) => {
             socket.off("error", handleError);
             // You could also emit a "host-left-game" event here if needed
         };
-    }, [gameId]);
+    }, [gameId, router]);
 
     const handleStartGame = () => {
         // Emit the start-game event to the server
-        socket.emit("start-game", { gameCode: gameId });
+        socket.emit("host-start-game", { gameCode: gameId });
         router.push(`/quiz/${gameId}`);
     };
 
@@ -113,6 +118,7 @@ const WaitingRoom = ({ params }: { params: Promise<{ gameId: string }> }) => {
                 </div>
                 <Button
                     onClick={handleStartGame}
+                    disabled={participants.length === 0}
                     className="absolute bottom-16 py-5 px-10 bg-primary text-foreground font-extrabold border-2 border-primary hover:text-foreground hover:bg-transparent group-hover:bg-accent group-hover:text-background disabled:bg-accent disabled:text-background disabled:border-accent hover:cursor-pointer"
                 >
                     START GAME

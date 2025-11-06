@@ -19,6 +19,9 @@ const ParticipantWaitingRoom = ({
             socket.connect();
         }
 
+        // Ensure the participant is in the correct game room
+        socket.emit("ensure-in-room", { gamCode: gameCode });
+
         // Define the event handler for when the host starts the game
         const handleGameStarted = () => {
             console.log("Game is starting! Navigating to buzzer...");

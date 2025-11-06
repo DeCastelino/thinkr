@@ -147,6 +147,115 @@ module.exports = (io) => {
             }
         });
 
+        socket.on("host-request-game-data", async (data) => {
+            console.log(
+                `7. Received 'host-request-game-data' from ${socket.id} for room:`,
+                data.gameCode
+            );
+            const gameCode = data.gameCode.toUpperCase();
+
+            try {
+                // Fetch game data AND the related quiz questions
+                // This uses Supabase's foreign key joining
+                const { data: game, error } = await supabaseAdmin
+                    .from("games")
+                    .select(
+                        `
+                        *,
+                        quizzes (
+                            questions
+                        )
+                    `
+                    )
+                    .eq("game_code", gameCode)
+                    .single();
+
+                if (error) {
+                    console.error(
+                        `Error fetching game data for ${gameCode}:`,
+                        error.message
+                    );
+                    return socket.emit("error", {
+                        message: `Game with code ${gameCode} not found.`,
+                    });
+                }
+
+                // The quiz data is nested, so let's flatten it for easier use on the frontend
+                const gameData = {
+                    ...game,
+                    questions: game.quizzes.questions,
+                };
+                delete gameData.quizzes; // Clean up the nested object
+
+                // Join the host to the room again (important for refreshes)
+                socket.join(gameCode);
+
+                // Send the comprehensive game data back to the host
+                socket.emit("game-data-response", gameData);
+                console.log(
+                    `8. Sent 'game-data-response' to host ${socket.id}`
+                );
+            } catch (err) {
+                console.error(
+                    `🔥🔥🔥 UNHANDLED ERROR in 'host-request-game-data' for socket ${socket.id}:`,
+                    err
+                );
+                socket.emit("error", {
+                    message:
+                        "A server error occurred while fetching game data.",
+                });
+            }
+        });
+
+        socket.on("ensure-in-room", (data) => {
+            const gameCode = data.gamCode.toUpperCase();
+            if (gameCode) {
+                console.log(
+                    `SOCKET: Ensureing socket ${socket.id} is in the room ${gameCode}`
+                );
+                socket.join(gameCode);
+            }
+        });
+
+        socket.on("host-start-game", async (data) => {
+            console.log(
+                `5. Received 'host-start-game' from ${socket.id} for room:`,
+                data.gameCode
+            );
+            const gameCode = data.gameCode.toUpperCase();
+
+            try {
+                // (Recommended) Update the game state in Supabase
+                const { error } = await supabaseAdmin
+                    .from("games")
+                    .update({ game_state: "started" })
+                    .eq("game_code", gameCode);
+
+                if (error) {
+                    console.error(
+                        `Error updating game state for ${gameCode}:`,
+                        error.message
+                    );
+                    // Continue anyway, but log the error
+                }
+
+                // *** THIS IS THE KEY ***
+                // Broadcast to EVERYONE in the room (host + participants)
+                io.to(gameCode).emit("game-started");
+                console.log(
+                    `6. Broadcast 'game-started' to everyone in room ${gameCode}`
+                );
+            } catch (err) {
+                console.error(
+                    `🔥🔥🔥 UNHANDLED ERROR in 'host-start-game' for socket ${socket.id}:`,
+                    err
+                );
+                socket.emit("error", {
+                    message: "A server error occurred while starting the game.",
+                });
+            }
+        });
+
         socket.on("disconnect", () => {
             console.log(`3. 🔌 Client disconnected: ${socket.id}`);
         });

@@ -2,14 +2,25 @@
 
 import { useState, useRef, useEffect } from "react";
 
-export default function Countdown() {
+type CountdownProps = {
+    duration: number; // Duration in seconds
+};
+
+export default function Countdown({ duration }: CountdownProps) {
     // State to manage the countdown timer value
-    const [timeLeft, setTimeLeft] = useState<number>(100);
+    const [timeLeft, setTimeLeft] = useState<number>(duration);
     // Reference to store the timer ID
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     // useEffect hook to manage the countdown interval
     useEffect(() => {
+        // If timer is 0 or no duration, don't start the timer
+        if (timeLeft <= 0) {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+            }
+            return;
+        }
         // If the timer is active and not paused
         // Set an interval to decrease the time left
         timerRef.current = setInterval(() => {
