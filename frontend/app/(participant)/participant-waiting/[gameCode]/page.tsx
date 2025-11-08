@@ -20,7 +20,7 @@ const ParticipantWaitingRoom = ({
         }
 
         // Ensure the participant is in the correct game room
-        socket.emit("ensure-in-room", { gamCode: gameCode });
+        socket.emit("ensure-in-room", { gameCode: gameCode });
 
         // Define the event handler for when the host starts the game
         const handleGameStarted = () => {
