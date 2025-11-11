@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,12 +8,41 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import ParticipantJoinPage from "./participantJoin";
 import loginAction from "./action";
+import { LoginFormData, loginSchema } from "@/app/schemas/auth";
+import { useState, useTransition } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
-const Login = async () => {
-    // ADD LOGIN LOGIC HERE
+const Login = () => {
+    const [serverError, setServerError] = useState<string | null>(null);
+    const [isPending, startTransition] = useTransition();
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<LoginFormData>({
+        resolver: zodResolver(loginSchema),
+        defaultValues: {
+            email: "",
+            password: "",
+        },
+    });
+
+    const onSubmit = (data: LoginFormData) => {
+        setServerError(null);
+        startTransition(async () => {
+            const response = await loginAction(data);
+
+            // Handle server-side errors
+            if (response?.error) {
+                setServerError(response.error);
+            }
+        });
+    };
 
     return (
-        <form>
+        <form onSubmit={handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-6">
                 <Card className="bg-primary px-3 py-6 w-lg h-[32rem] p-12">
                     <Tabs
@@ -40,23 +71,40 @@ const Login = async () => {
                                 <div className="grid gap-3">
                                     <Label htmlFor="email">Email</Label>
                                     <Input
+                                        {...register("email")}
                                         id="email"
                                         name="email"
                                         type="email"
                                         className="bg-secondary"
                                         required
                                     />
+                                    {errors.email && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.email.message}
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="grid gap-3">
                                     <Label htmlFor="password">Password</Label>
                                     <Input
+                                        {...register("password")}
                                         id="password"
                                         name="password"
                                         type="password"
                                         className="bg-secondary"
                                         required
                                     />
+                                    {errors.password && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.password.message}
+                                        </p>
+                                    )}
                                 </div>
+                                {serverError && (
+                                    <p className="text-red-500 text-sm mt-1">
+                                        {serverError}
+                                    </p>
+                                )}
                             </CardContent>
                             <div className="flex justify-between">
                                 <div className="flex items-center">
@@ -82,10 +130,11 @@ const Login = async () => {
                             </div>
                             <CardFooter className="flex flex-col justify-between mt-10 gap-5">
                                 <Button
-                                    formAction={loginAction}
+                                    type="submit"
+                                    disabled={isPending}
                                     className="w-full bg-foreground text-background border-2 border-foreground hover:text-foreground hover:bg-transparent group-hover:bg-accent group-hover:text-background disabled:bg-accent disabled:text-background disabled:border-accent hover:cursor-pointer"
                                 >
-                                    LOGIN
+                                    {isPending ? "Logging in..." : "LOGIN"}
                                 </Button>
                                 <p className="text-sm text-center">
                                     <a

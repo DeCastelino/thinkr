@@ -19,7 +19,7 @@ const SignupButton = () => {
         <Button
             type="submit"
             formAction={signupAction}
-            className="w-full bg-foreground outline-none shadow-none hover:bg-inherit hover:text-foreground hover:border-2 hover:border-foreground hover:cursor-pointer"
+            className="w-full bg-foreground text-background border-2 border-foreground hover:text-foreground hover:bg-transparent group-hover:bg-accent group-hover:text-background disabled:bg-accent disabled:text-background disabled:border-accent hover:cursor-pointer"
             disabled={pending}
         >
             {pending ? (

@@ -3,24 +3,21 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createClient } from "../../utils/supabase/server";
+import { LoginFormData, loginSchema } from "@/app/schemas/auth";
 
-const loginAction = async (formData: FormData) => {
+const loginAction = async (formData: LoginFormData) => {
+    const result = loginSchema.safeParse(formData);
+    if (!result.success) return { error: "Invalid form data" };
+
     const supabase = await createClient();
+    const { email, password } = result.data;
 
-    // type-casting here for convenience
-    // in practice, you should validate your inputs
-    const data = {
-        email: formData.get("email") as string,
-        password: formData.get("password") as string,
-    };
+    const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+    });
 
-    console.log("Login Data:", data);
-
-    const { error } = await supabase.auth.signInWithPassword(data);
-
-    if (error) {
-        redirect("/error");
-    }
+    if (error) return { error: error.message };
 
     revalidatePath("/", "layout");
     redirect("/create-quiz");
