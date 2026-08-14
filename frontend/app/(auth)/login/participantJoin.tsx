@@ -1,12 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import socket from "@/app/utils/websockets/webSockets";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useSocketEvents } from "@/hooks/useSocketEvents";
+import {
+    emit,
+    socketEmits,
+    socketEvents,
+} from "@/app/utils/websockets/events";
+import type { Game } from "@/types/game";
 
 const ParticipantJoinPage = () => {
     const router = useRouter();
@@ -14,34 +20,18 @@ const ParticipantJoinPage = () => {
     const [gameCode, setGameCode] = useState("");
     const [error, setError] = useState("");
 
-    useEffect(() => {
-        if (!socket) return;
-
-        if (!socket.connected) socket.connect();
-
-        const handleGameJoined = (game: { game_code: string }) => {
+    useSocketEvents({
+        [socketEvents.gameJoined]: (game: Game) => {
             console.log("Participant successfully joined game:", game);
-            // Redirect to participant waiting room
             router.push(`/participant-waiting/${game.game_code}`);
-        };
-
-        const handleError = (errorMessage: string) => {
+        },
+        [socketEvents.error]: (errorMessage) => {
             console.error("Server error:", errorMessage);
-            setError(errorMessage);
-            socket.disconnect(); // Disconnect on error
-        };
+            setError(errorMessage.message);
+        },
+    });
 
-        socket.on("game-joined", handleGameJoined);
-        // socket.on("error", handleError);
-
-        return () => {
-            console.log("Cleaning up socket listeners for participant join");
-            socket.off("game-joined", handleGameJoined);
-            // socket.off("error", handleError);
-        };
-    }, [router]);
-
-    const handleJoinGame = async () => {
+    const handleJoinGame = () => {
         if (!username.trim() || !gameCode.trim()) {
             setError("Both username and game code are required.");
             return;
@@ -51,7 +41,7 @@ const ParticipantJoinPage = () => {
 
         console.log("Attempting to join game with code:", gameCode);
 
-        socket.emit("participant-join-game", {
+        emit(socketEmits.participantJoinGame, {
             gameCode: gameCode.toUpperCase(),
             username,
         });
@@ -81,6 +71,11 @@ const ParticipantJoinPage = () => {
                         onChange={(e) => setGameCode(e.target.value)}
                     />
                 </div>
+                {error && (
+                    <p className="text-red-500 text-sm mt-1 text-center">
+                        {error}
+                    </p>
+                )}
             </CardContent>
             <CardFooter className="flex justify-center mt-10">
                 <Button

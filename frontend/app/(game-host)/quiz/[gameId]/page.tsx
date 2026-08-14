@@ -1,32 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
 import Leaderboard from "@/components/Leaderboard";
 import Timer from "@/components/Timer";
-import socket from "@/app/utils/websockets/webSockets";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { useParams } from "next/navigation";
-
-type Question = {
-    questionText: string;
-    options: string[];
-    correctAnswer: string;
-};
-
-type Game = {
-    id: string;
-    game_code: string;
-    quiz_id: string;
-    host_id: string;
-    gmae_state: "waiting" | "in-progress" | "completed";
-    time_per_question: number;
-    participants: any[];
-    leaderboard: any[];
-    current_question_index: number;
-    questions: Question[];
-};
+import { useSocketEvents } from "@/hooks/useSocketEvents";
+import {
+    emit,
+    socketEmits,
+    socketEvents,
+} from "@/app/utils/websockets/events";
+import { normalizeParticipants } from "@/app/utils/participants";
+import type { Game } from "@/types/game";
 
 type QuestionState =
     | "showing_question"
@@ -45,89 +33,67 @@ const Quiz = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Connect to socket and get game data
-    useEffect(() => {
-        if (!gameId || !socket) return;
-
-        if (!socket.connected) socket.connect();
-
-        const handleGameData = (gameData: Game) => {
-            console.log("Received game data:", gameData);
-            // Ensure participants are objects, not strings
-            const participantsAsObjects = (gameData.participants || []).map(
-                (p: any) => (typeof p === "string" ? JSON.parse(p) : p)
-            );
-            setGame({ ...gameData, participants: participantsAsObjects });
-            setLoading(false);
-        };
-
-        const handleError = (errorMessage: string) => {
-            setError(errorMessage);
-            setLoading(false);
-        };
-
-        const onWaiting = (data: { username: string }) => {
-            setQuestionState("waiting_for_answer");
-            setMessage(`Waiting for ${data.username} to answer...`);
-        };
-        const onCorrect = (data: {
-            username: string;
-            score: number;
-            participants: any[];
-        }) => {
-            setQuestionState("showing_result");
-            setMessage(`CORRECT! ${data.username} gets 10 points.`);
-            // Update participants in game state for leaderboard
-            setGame((prevGame) =>
-                prevGame
-                    ? { ...prevGame, participants: data.participants }
-                    : null
-            );
-        };
-
-        const onIncorrect = (data: { username: string }) => {
-            setQuestionState("showing_result"); // Still showing a result
-            setMessage(`INCORRECT! ${data.username} chose the wrong answer.`);
-        };
-
-        const onAllWrong = () => {
-            setQuestionState("showing_result");
-            setMessage("No one got the answer! Moving on...");
-        };
-
-        // Attach listeners
-        socket.on("game-data-response", handleGameData);
-        socket.on("error", handleError);
-        socket.on("waiting-for-answer", onWaiting);
-        socket.on("answer-result-correct", onCorrect);
-        socket.on("answer-result-incorrect", onIncorrect);
-        socket.on("question-over-wrong", onAllWrong);
-
-        // Request game data on load
-        console.log(`Requesting game data for ${gameId}`);
-        socket.emit("host-request-game-data", { gameCode: gameId });
-
-        // Cleanup on unmount
-        return () => {
-            socket.off("game-data-response", handleGameData);
-            socket.off("error", handleError);
-            socket.off("waiting-for-answer", onWaiting);
-            socket.off("answer-result-correct", onCorrect);
-            socket.off("answer-result-incorrect", onIncorrect);
-            socket.off("question-over-wrong", onAllWrong);
-        };
-    }, [gameId]);
+    useSocketEvents(
+        {
+            [socketEvents.gameDataResponse]: (gameData) => {
+                console.log("Received game data:", gameData);
+                setGame({
+                    ...gameData,
+                    participants: normalizeParticipants(gameData.participants),
+                });
+                setQuestionState("showing_question");
+                setMessage("");
+                setLoading(false);
+            },
+            [socketEvents.error]: (errorMessage) => {
+                setError(errorMessage.message);
+                setLoading(false);
+            },
+            [socketEvents.waitingForAnswer]: (data) => {
+                setQuestionState("waiting_for_answer");
+                setMessage(`Waiting for ${data.username} to answer...`);
+            },
+            [socketEvents.answerResultCorrect]: (data) => {
+                setQuestionState("showing_result");
+                setMessage(`CORRECT! ${data.username} gets 10 points.`);
+                setGame((prevGame) =>
+                    prevGame
+                        ? { ...prevGame, participants: data.participants }
+                        : null
+                );
+            },
+            [socketEvents.answerResultIncorrect]: (data) => {
+                setQuestionState("showing_result");
+                setMessage(
+                    `INCORRECT! ${data.username} chose the wrong answer.`
+                );
+            },
+            [socketEvents.questionOverWrong]: () => {
+                setQuestionState("showing_result");
+                setMessage("No one got the answer! Moving on...");
+            },
+        },
+        {
+            enabled: Boolean(gameId),
+            onMount: () => {
+                console.log(`Requesting game data for ${gameId}`);
+                if (gameId) {
+                    emit(socketEmits.hostRequestGameData, {
+                        gameCode: gameId,
+                    });
+                }
+            },
+        }
+    );
 
     const handleNextQuestion = () => {
-        if (!game) return;
+        if (!game || !gameId) return;
         const newIndex = game.current_question_index + 1;
-        if (newIndex >= game.questions.length) {
-            // End of game logic
+        if (!game.questions || newIndex >= game.questions.length) {
             alert("End of game!");
             return;
         }
-        // Tell server to move to next question
-        socket.emit("host-next-question", {
+        emit(socketEmits.hostNextQuestion, {
             gameCode: gameId,
             newQuestionIndex: newIndex,
         });

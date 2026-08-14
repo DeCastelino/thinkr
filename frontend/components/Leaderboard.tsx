@@ -1,11 +1,5 @@
-// Define the Participant type
-type Participant = {
-    socketId: string;
-    username: string;
-    score: number;
-};
+import type { Participant } from "@/types/game";
 
-// Define props for the Leaderboard
 type LeaderboardProps = {
     participants: Participant[];
 };

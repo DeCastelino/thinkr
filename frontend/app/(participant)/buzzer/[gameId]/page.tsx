@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import socket from "@/app/utils/websockets/webSockets";
+import { useState } from "react";
+import { useParams } from "next/navigation";
+import { useSocketEvents } from "@/hooks/useSocketEvents";
+import {
+    emit,
+    socketEmits,
+    socketEvents,
+} from "@/app/utils/websockets/events";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
-import Buzzer from "@/components/Buzzer"; // We'll keep your Buzzer component for the view
+import Buzzer from "@/components/Buzzer";
 
 const BuzzerPage = () => {
     const params = useParams();
-    const router = useRouter();
     const gameCode = params.gameId as string;
 
     // 'buzzer' = Can buzz
@@ -20,57 +24,36 @@ const BuzzerPage = () => {
     );
     const [options, setOptions] = useState<string[]>([]);
 
-    useEffect(() => {
-        if (!gameCode) return;
-
-        if (!socket.connected) {
-            socket.connect();
+    useSocketEvents(
+        {
+            [socketEvents.newQuestionReady]: () => {
+                console.log("New question, buzzer is active.");
+                setView("buzzer");
+            },
+            [socketEvents.yourTurnToAnswer]: (data) => {
+                console.log("It's my turn to answer!");
+                setOptions(data.options);
+                setView("answering");
+            },
+            [socketEvents.answerResultCorrect]: () => setView("waiting"),
+            [socketEvents.answerResultIncorrect]: () => setView("waiting"),
+            [socketEvents.questionOverWrong]: () => setView("waiting"),
+        },
+        {
+            enabled: Boolean(gameCode),
+            onMount: () => emit(socketEmits.ensureInRoom, { gameCode }),
         }
-
-        // Re-join room on load/refresh
-        socket.emit("ensure-in-room", { gameCode });
-
-        // --- SOCKET LISTENERS ---
-        const onNewQuestion = () => {
-            console.log("New question, buzzer is active.");
-            setView("buzzer");
-        };
-
-        const onYourTurn = (data: { options: string[] }) => {
-            console.log("It's my turn to answer!");
-            setOptions(data.options);
-            setView("answering");
-        };
-
-        const onResult = () => {
-            // After any result, correct or incorrect, wait for next question
-            setView("waiting");
-        };
-
-        socket.on("new-question-ready", onNewQuestion);
-        socket.on("your-turn-to-answer", onYourTurn);
-        socket.on("answer-result-correct", onResult);
-        socket.on("answer-result-incorrect", onResult); // You still wait
-        socket.on("question-over-wrong", onResult); // Everyone was wrong
-
-        return () => {
-            socket.off("new-question-ready", onNewQuestion);
-            socket.off("your-turn-to-answer", onYourTurn);
-            socket.off("answer-result-correct", onResult);
-            socket.off("answer-result-incorrect", onResult);
-            socket.off("question-over-wrong", onResult);
-        };
-    }, [gameCode]);
+    );
 
     const handleBuzz = () => {
         console.log("Buzzing in!");
-        socket.emit("participant-buzz", { gameCode });
+        emit(socketEmits.participantBuzz, { gameCode });
         setView("waiting");
     };
 
     const handleAnswerSubmit = (answer: string) => {
         console.log(`Submitting answer: ${answer}`);
-        socket.emit("participant-submit-answer", { gameCode, answer });
+        emit(socketEmits.participantSubmitAnswer, { gameCode, answer });
         setView("waiting");
     };
 

@@ -1,43 +1,34 @@
 "use client";
 
-import { useEffect } from "react";
+import { use } from "react";
 import { useRouter } from "next/navigation";
-import socket from "@/app/utils/websockets/webSockets";
 import { Spinner } from "@/components/ui/spinner";
+import { useSocketEvents } from "@/hooks/useSocketEvents";
+import {
+    emit,
+    socketEmits,
+    socketEvents,
+} from "@/app/utils/websockets/events";
 
 const ParticipantWaitingRoom = ({
     params,
 }: {
-    params: { gameCode: string };
+    params: Promise<{ gameCode: string }>;
 }) => {
     const router = useRouter();
-    const { gameCode } = params;
+    const { gameCode } = use(params);
 
-    useEffect(() => {
-        // Ensure the socket is connected
-        if (!socket.connected) {
-            socket.connect();
+    useSocketEvents(
+        {
+            [socketEvents.gameStarted]: () => {
+                console.log("Game is starting! Navigating to buzzer...");
+                router.push(`/buzzer/${gameCode}`);
+            },
+        },
+        {
+            onMount: () => emit(socketEmits.ensureInRoom, { gameCode }),
         }
-
-        // Ensure the participant is in the correct game room
-        socket.emit("ensure-in-room", { gameCode: gameCode });
-
-        // Define the event handler for when the host starts the game
-        const handleGameStarted = () => {
-            console.log("Game is starting! Navigating to buzzer...");
-            // Navigate to the buzzer page for this game
-            router.push(`/buzzer/${gameCode}`);
-        };
-
-        // Listen for the 'game-started' event from the server
-        socket.on("game-started", handleGameStarted);
-
-        // Clean up the listener when the component unmounts
-        return () => {
-            console.log("Cleaning up 'game-started' listener.");
-            socket.off("game-started", handleGameStarted);
-        };
-    }, [gameCode, router]); // Re-run if gameCode or router changes
+    );
 
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-secondary p-10 gap-6 text-center">
@@ -48,7 +39,7 @@ const ParticipantWaitingRoom = ({
 
             {/* Main status message */}
             <h2 className="text-4xl font-bold text-primary italic">
-                You're in!
+                You&apos;re in!
             </h2>
 
             {/* Reassuring sub-message with spinner */}

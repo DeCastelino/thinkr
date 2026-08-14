@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import Dropdown from "@/components/Dropdown";
 import { createClient } from "@/app/utils/supabase/client";
 import socket from "@/app/utils/websockets/webSockets";
+import { emit, socketEmits } from "@/app/utils/websockets/events";
 
 const CreateQuiz = () => {
     const router = useRouter();
@@ -47,7 +48,7 @@ const CreateQuiz = () => {
                 )
                 .then((response) => {
                     socket.connect(); // Manually connect the socket
-                    socket.emit("host-join-game", {
+                    emit(socketEmits.hostJoinGame, {
                         gameCode: response.data.gameCode,
                     });
                     router.push(`/waiting-room/${response.data.gameCode}`);
@@ -56,7 +57,7 @@ const CreateQuiz = () => {
                 .catch((error) => {
                     console.error("Error creating quiz:", error);
                 });
-        } catch (error: any) {
+        } catch (error) {
             console.error("Error creating quiz:", error);
         }
     };
@@ -116,7 +117,7 @@ const CreateQuiz = () => {
                 onClick={handleSubmit}
                 className="bg-foreground outline-none mt-20 w-[180px] rounded-full shadow-none hover:bg-inherit hover:text-foreground hover:border-2 hover:border-foreground hover:cursor-pointer"
             >
-                LOGIN
+                CREATE QUIZ
             </Button>
         </div>
     );

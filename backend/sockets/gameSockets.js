@@ -127,9 +127,11 @@ module.exports = (io) => {
                 } else {
                     // Participant is reconnecting; update their socketId
                     updatedParticipants = game.participants.map((p) => {
-                        p.username === username
-                            ? { ...p, socketId: socket.id }
-                            : p;
+                        const participant =
+                            typeof p === "string" ? JSON.parse(p) : p;
+                        return participant.username === username
+                            ? { ...participant, socketId: socket.id }
+                            : participant;
                     });
                 }
                 const { data: updatedGame, error: updateError } =

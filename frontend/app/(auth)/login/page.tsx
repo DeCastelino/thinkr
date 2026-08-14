@@ -141,7 +141,7 @@ const Login = () => {
                                         href="/signup"
                                         className=" font-medium italic underline hover:font-bold"
                                     >
-                                        Don't have an account?
+                                        Don&apos;t have an account?
                                     </a>
                                 </p>
                             </CardFooter>

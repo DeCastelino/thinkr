@@ -1,82 +1,50 @@
 "use client";
-import { use, useEffect, useState } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import socket from "@/app/utils/websockets/webSockets";
 import { Button } from "@/components/ui/button";
+import { useSocketEvents } from "@/hooks/useSocketEvents";
+import {
+    emit,
+    socketEmits,
+    socketEvents,
+} from "@/app/utils/websockets/events";
+import { normalizeParticipants } from "@/app/utils/participants";
+import type { Game, Participant } from "@/types/game";
+
 const WaitingRoom = ({ params }: { params: Promise<{ gameId: string }> }) => {
     const { gameId } = use(params);
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
-    type Participant = {
-        socketId: string;
-        username: string;
-        score: number;
-    };
-
-    // This effect hook handles all WebSocket communication
-    useEffect(() => {
-        // --- SETUP ---
-        // 1. Tell the server we are the host for this game room
-        socket.emit("host-join-game", { gameCode: gameId });
-
-        // --- EVENT LISTENERS ---
-        // 2. Listen for the initial game state confirmation from the server
-        const handleGameJoined = (updatedGame: any) => {
-            console.log("Client: Host successfully joined game:", updatedGame);
-            // Set the initial list of participants who might already be there
-            const participantsAsObjects = (updatedGame.participants || []).map(
-                (p: any) => (typeof p === "string" ? JSON.parse(p) : p)
-            );
-            setParticipants(participantsAsObjects);
-        };
-
-        // 3. Listen for REAL-TIME updates to the participant list
-        const handleParticipantUpdate = (
-            updatedParticipants: Participant[]
-        ) => {
-            console.log(
-                "Client: Received participant update:",
-                updatedParticipants
-            );
-            const participantsAsObjects = (updatedParticipants || []).map(
-                (p: any) => (typeof p === "string" ? JSON.parse(p) : p)
-            );
-            setParticipants(participantsAsObjects);
-        };
-
-        // 4. Listen for any errors sent by the server
-        const handleError = (errorMessage: string) => {
-            console.error("Server error:", errorMessage);
-            setError(errorMessage);
-        };
-
-        const handleGameStarted = () => {
-            router.push(`/quiz/${gameId}`);
-        };
-
-        // Attach all the event listeners
-        socket.on("game-joined", handleGameJoined);
-        socket.on("participant-updated", handleParticipantUpdate);
-        socket.on("game-started", handleGameStarted);
-        socket.on("error", handleError);
-
-        // --- CLEANUP ---
-        // This function runs when the component is unmounted (e.g., user navigates away)
-        // It's crucial for preventing memory leaks.
-        return () => {
-            console.log("Cleaning up socket listeners for waiting room");
-            socket.off("game-joined", handleGameJoined);
-            socket.off("participant-updated", handleParticipantUpdate);
-            socket.off("error", handleError);
-            // You could also emit a "host-left-game" event here if needed
-        };
-    }, [gameId, router]);
+    useSocketEvents(
+        {
+            [socketEvents.gameJoined]: (game: Game) => {
+                console.log("Client: Host successfully joined game:", game);
+                setParticipants(normalizeParticipants(game.participants));
+            },
+            [socketEvents.participantUpdated]: (updatedParticipants) => {
+                console.log(
+                    "Client: Received participant update:",
+                    updatedParticipants
+                );
+                setParticipants(normalizeParticipants(updatedParticipants));
+            },
+            [socketEvents.error]: (errorMessage) => {
+                console.error("Server error:", errorMessage);
+                setError(errorMessage.message);
+            },
+            [socketEvents.gameStarted]: () => {
+                router.push(`/quiz/${gameId}`);
+            },
+        },
+        {
+            onMount: () => emit(socketEmits.hostJoinGame, { gameCode: gameId }),
+        }
+    );
 
     const handleStartGame = () => {
-        // Emit the start-game event to the server
-        socket.emit("host-start-game", { gameCode: gameId });
+        emit(socketEmits.hostStartGame, { gameCode: gameId });
         router.push(`/quiz/${gameId}`);
     };
 
@@ -116,6 +84,11 @@ const WaitingRoom = ({ params }: { params: Promise<{ gameId: string }> }) => {
                         {gameId}
                     </div>
                 </div>
+                {error && (
+                    <p className="text-lg italic text-red-500 text-center mt-4">
+                        {error}
+                    </p>
+                )}
                 <Button
                     onClick={handleStartGame}
                     disabled={participants.length === 0}
